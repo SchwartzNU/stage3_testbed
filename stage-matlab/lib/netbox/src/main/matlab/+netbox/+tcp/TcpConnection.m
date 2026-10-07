@@ -65,6 +65,13 @@ classdef TcpConnection < handle
                 rethrow(x);
             end
             
+            % Presentations sent to Stage can reference Symphony .NET objects
+            % (e.g. a protocol captured by a PropertyController closure, whose
+            % rig devices wrap .NET handles). MATLAB serializes those as deleted
+            % handles and warns for each one; Stage never dereferences them, so
+            % silence the warning for this call only.
+            ws = warning('off', 'MATLAB:NET:FailedToSerialize');
+            restoreWarning = onCleanup(@() warning(ws));
             bytes = getByteStreamFromArray(varargin);
             
             try
