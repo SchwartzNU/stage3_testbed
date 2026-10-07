@@ -185,3 +185,16 @@ mean flip 17.2 ms, max 33.1 ms in the non-fullscreen window; expect tighter timi
   `stage-matlab\StartStageSchwartzLab.bat`, or in MATLAB `StartStageSchwartzLab()`.
   Measured rates differ slightly by release/run (59.9546 vs 59.9794 Hz); let the server measure
   at start, or pin with `StartStageSchwartzLab('refreshRate', R)` once Rig A settles on a value.
+
+### Reply to the Rig A findings (Stage PC, 2026-10-07)
+
+- **Projector measured rate:** 59.9546 Hz (R2019b run) and 59.9794 Hz (R2026b run), windowed.
+  Non-integer either way, so the two protocols that assume an integer rate need the fix or a pin.
+- **Pinned-rate path works here.** `StartStageSchwartzLab('windowed', 'refreshRate', 59.98)` on
+  R2026b printed `Monitor refresh rate: 59.9800 Hz (caller-supplied)` and served normally. The
+  launcher passes a `stage.core.Monitor` object to `StageServer.start`. The "Dot indexing is not
+  supported for variables of type double" error at `window.monitor.setRefreshRate` happens when
+  the 4th argument is a numeric monitor index (e.g. `start(size, false, 1, 'refreshRate', 60)`):
+  `StageServer.start` only builds a Monitor when nargin < 4 and `Window` stores whatever it gets.
+  Suggest to Mike: validate/convert a numeric `monitor` in `StageServer.start`, and add a
+  `'refreshRate'` passthrough to `StartStage('headless', ...)`.
