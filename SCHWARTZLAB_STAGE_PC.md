@@ -80,3 +80,17 @@ Symphony 3 on the Rig A PC (whose `sa_labs.rigs.SchwartzLab_Rig_A_UVProjector` o
   custom compositor/stimulus classes? (Stage 2 setup: check whether the old server has it.)
 - Projector monitor index and measured refresh rate (Stage 3 can pin it with
   `StartStage('headless', ..., 'refreshRate', R)` if the empirical measurement is off).
+
+## Findings from the Rig A PC (2026-10-07, later)
+
+- Stage 3 reports the **measured** monitor refresh rate (60.30 Hz on the Rig A desktop monitor);
+  Stage 2 returned GLFW's integer 60. Two lab protocols (NaturalMovingObjectAndFlash,
+  White_to_Pink_Temporal_Noise) break on a non-integer rate. When the server is up here, report
+  the measured rate of the projector (`Monitor refresh rate: ... (measured)` in the console) so
+  Greg can decide between pinning the rate and fixing the protocols.
+- The pinned-rate path `StageServer.start(size, fullscreen, monitor, 'refreshRate', 60)` errors in
+  windowed mode: "Dot indexing is not supported for variables of type double" at
+  `window.monitor.setRefreshRate` (StageServer.m line 85). `StartStage('headless', ...)` does not
+  accept 'refreshRate' at all. Worth checking whether fullscreen mode has the same bug; report to Mike.
+- R2026b ships with no toolboxes by default; Stage itself needs none, but check `ver` anyway.
+- Rig A PC clone commit of this fork: see `git log -1` here; keep both in sync.
