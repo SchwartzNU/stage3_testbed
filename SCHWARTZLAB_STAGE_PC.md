@@ -94,3 +94,70 @@ Symphony 3 on the Rig A PC (whose `sa_labs.rigs.SchwartzLab_Rig_A_UVProjector` o
   accept 'refreshRate' at all. Worth checking whether fullscreen mode has the same bug; report to Mike.
 - R2026b ships with no toolboxes by default; Stage itself needs none, but check `ver` anyway.
 - Rig A PC clone commit of this fork: see `git log -1` here; keep both in sync.
+## Stage PC status (2026-10-07, from the Stage PC session)
+
+Hostname DESKTOP-0NAQIQ7, IP 192.168.0.3, GPU NVIDIA GeForce GT 710 (driver 30.0.14.7514).
+
+### Answers to the open questions
+
+- **MATLAB:** R2016a and R2019b installed (R2019b Update 9, bundled Java 1.8.0_202). Stage 3
+  runs on R2019b: `VerifyStage` passes every check and all prebuilt MEX files load, so no
+  rebuild and no JDK install were needed. Greg is installing R2026b in parallel; on that
+  release step 0 (Temurin JDK 17 + `jenv`) applies, and a MEX reload check should be repeated.
+- **Projector monitor index = 1.** It is the only display attached (`\.\DISPLAY1`,
+  "Generic PnP Monitor", 912x1140, LightCrafter 4500 native). GLFW enumerates exactly one
+  monitor. Nominal 60 Hz; **Stage 3 measured 59.9546 Hz** at server start (median-of-N).
+- **sa-labs-extension on the server path: yes, required.** The production Stage 2 server's
+  saved path (R2019b `pathdef.m`) contains `Documents\MATLAB\sa-labs-extension` (master,
+  via genpath). netbox serializes with `getByteStreamFromArray`/`getArrayFromByteStream`, so
+  the server needs the class definitions to deserialize `sa_labs.util.*`. A separate clone of
+  the `symphony3-port` branch lives at `Documents\MATLAB\Symphony3\sa-labs-extension`
+  (commit 115002f) and the launcher below adds its `src\main\matlab` to the path. Verified:
+  a presentation with `sa_labs.util.SubtractiveRectangle` + `sa_labs.util.ExactPatternCompositor`
+  (with a `PatternRenderer(4,2,8)` set first) deserialized and played on the Stage 3 server.
+
+### How Stage 2 runs here (do not touch)
+
+- Startup-folder shortcut `C:\ProgramData\...\Startup\stage.lnk` runs
+  `R2019b matlab.exe -nodesktop -nosplash -r "startStageServer"`; `Documents\MATLAB\startStageServer.m`
+  launches the installed "Stage Server" app (`Documents\MATLAB\Add-Ons\Apps\StageServer`,
+  toolbox at `Add-Ons\Toolboxes\Stage`). Port 5678. It was not running during this session
+  (nothing listening on 5678, no MATLAB process); it comes up at login.
+- Windows Firewall already has program-scoped inbound Allow rules (TCP and UDP, any port) for
+  `C:\Program Files\MATLAB\R2019b\bin\win64\matlab.exe`, so port 5679 needs no new rule as long
+  as the Stage 3 server runs under R2019b. A new MATLAB release will need its own rule
+  (MATLAB normally prompts for it on first network use; the account is not an administrator).
+
+### Stage 3 launcher for this PC
+
+`stage-matlab\StartStageSchwartzLab.m` (and `.bat`), committed in this fork:
+
+```matlab
+cd('C:\Users\SchwartzLab\Documents\MATLAB\Symphony3\stage3_testbed\stage-matlab')
+StartStageSchwartzLab('windowed')   % 640x480 window, port 5679, smoke test
+StartStageSchwartzLab()             % fullscreen on monitor 1 (projector), port 5679
+StartStageSchwartzLab('refreshRate', 59.9546)   % optional: pin the measured rate
+```
+
+Session-only path hygiene (nothing is saved): removes the installed Stage 2 toolbox/app and
+the master sa-labs-extension from the path, adds this source tree, adds the symphony3-port
+extension, and puts the winget ffmpeg (Gyan.FFmpeg 9.0.2, `%LOCALAPPDATA%\Microsoft\WinGet\...`)
+on PATH if it is not inherited yet. Refuses port 5678.
+
+Verified 2026-10-07 on R2019b, windowed: `StageClient` connect/getCanvasSize/
+getMonitorRefreshRate/getMonitorResolution/play/getPlayInfo/clearMemory/disconnect all worked
+from a second MATLAB on localhost (1 s ellipse with a PropertyController: 57 frames,
+mean flip 17.2 ms, max 33.1 ms in the non-fullscreen window; expect tighter timing fullscreen).
+
+### Tooling installed this session (per-user, via winget)
+
+- Gyan.FFmpeg 9.0.2 (restart shells / re-login for PATH; the launcher also handles it).
+- GitHub.cli (`%LOCALAPPDATA%\Microsoft\WinGet\Packages\GitHub.cli_*\bin\gh.exe`); not yet
+  logged in (`gh auth login` as SchwartzNU is interactive).
+- Not installed: MinGW (not needed on R2019b), Temurin JDK (not needed on R2019b).
+
+### For the Rig A session
+
+- Stage 3 fork commit: see `git log -1` on this repo after this commit (Rig A clone must match).
+- sa-labs-extension symphony3-port commit on the server: 115002f.
+- Projector: monitor 1, 912x1140, measured 59.9546 Hz (nominal 60).
