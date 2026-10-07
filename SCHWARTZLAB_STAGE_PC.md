@@ -161,3 +161,27 @@ mean flip 17.2 ms, max 33.1 ms in the non-fullscreen window; expect tighter timi
 - Stage 3 fork commit: see `git log -1` on this repo after this commit (Rig A clone must match).
 - sa-labs-extension symphony3-port commit on the server: 115002f.
 - Projector: monitor 1, 912x1140, measured 59.9546 Hz (nominal 60).
+
+### R2026b (installed 2026-10-07, later the same session)
+
+- R2026b (26.2.0.3386108) installed by Greg; products: MATLAB + MATLAB Copilot only.
+- Temurin JDK 17.0.20.1 installed (`winget install EclipseAdoptium.Temurin.17.JDK`, UAC approved)
+  and bound once with `jenv("C:\Program Files\Eclipse Adoptium\jdk-17.0.20.101-hotspot")`.
+  `version -java` in a `-batch` session still prints "Java is not loaded" (lazy load); the
+  server start proves the JVM works (netbox listens, clients connect).
+- `VerifyStage` on R2026b: ALL 12 CHECKS PASSED (prebuilt MEX files load, ffmpeg found).
+- `StartStageSchwartzLab('windowed')` on R2026b: measured refresh **59.9794 Hz**; the same
+  two localhost client tests passed (1 s ellipse: 56 frames, mean flip 17.9 ms;
+  SubtractiveRectangle + ExactPatternCompositor with PatternRenderer(4,2,8): 17 frames).
+- Toolboxes: `matlab.codetools.requiredFilesAndProducts` over Stage 3 `src`, netbox,
+  matlab-avbin and `sa_labs.util.*` reports **MATLAB only**. Nothing else to install for the
+  server. MinGW is only needed if a MEX rebuild is ever required (it is not today).
+- Firewall: the R2026b installer added "MATLAB R2026b" inbound Allow rules (TCP+UDP, any port,
+  Public profile) for `C:\Program Files\MATLAB\R2026b\bin\win64\matlab.exe`. The Ethernet
+  adapter (192.168.0.3, "Unidentified network") is on the Public profile, so port 5679 is
+  reachable from the rig network under R2019b or R2026b without new rules.
+- Recommended production launch (R2026b, projector, port 5679):
+  `set "MATLAB_EXE=C:\Program Files\MATLAB\R2026b\bin\matlab.exe"` then
+  `stage-matlab\StartStageSchwartzLab.bat`, or in MATLAB `StartStageSchwartzLab()`.
+  Measured rates differ slightly by release/run (59.9546 vs 59.9794 Hz); let the server measure
+  at start, or pin with `StartStageSchwartzLab('refreshRate', R)` once Rig A settles on a value.
