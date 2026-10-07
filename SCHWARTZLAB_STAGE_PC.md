@@ -215,3 +215,18 @@ mean flip 17.2 ms, max 33.1 ms in the non-fullscreen window; expect tighter timi
   every 10 s (netbox accept/receive timeout), so **left Shift + Esc must be held for up to 10 s**
   with the Stage window focused. Ctrl+Shift+Esc (Task Manager) is the keyboard fallback. Worth
   suggesting a shorter poll interval to Mike.
+
+### Handoff to Rig A (Stage PC, 2026-10-07, end of session)
+
+- Stage 3 is **running now**, fullscreen on the projector, port 5679, MATLAB R2026b, started by
+  `stagepc\Start-Stage3.bat` (also the login default). Both switch scripts and the stop script
+  were tested by Greg after a reboot.
+- Fullscreen localhost check: canvas 912x1140, **measured refresh 60.0080 Hz** (windowed runs
+  measured 59.95-59.98 Hz; use the fullscreen figure). 1 s ellipse = 60 frames, steady 16.7 ms
+  flips after the first ~6 frames.
+- Fork commit on the Stage PC: see `git log -1` (this commit). sa-labs-extension on the server:
+  `symphony3-port` @ 115002f.
+- Connect from Rig A with host 192.168.0.3, port 5679. The server console prints
+  "Client connected from <host>" on connect. If the connection is refused, check that the Stage
+  window is up (someone may have switched to Stage 2 via the Desktop shortcut) rather than the
+  firewall, which already allows R2026b MATLAB inbound on the rig network.
