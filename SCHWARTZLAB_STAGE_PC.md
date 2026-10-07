@@ -198,3 +198,20 @@ mean flip 17.2 ms, max 33.1 ms in the non-fullscreen window; expect tighter timi
   `StageServer.start` only builds a Monitor when nargin < 4 and `Window` stores whatever it gets.
   Suggest to Mike: validate/convert a numeric `monitor` in `StageServer.start`, and add a
   `'refreshRate'` passthrough to `StartStage('headless', ...)`.
+
+### Switch scripts and login default (Stage PC, 2026-10-07, approved by Greg)
+
+- `stagepc\Start-Stage3.bat`, `Start-Stage2.bat`, `Stop-StageServers.bat` (+ `.ps1` helper,
+  `README.md`). Each switch stops whatever Stage server is running (by listening port
+  5678/5679, launch command line, and child processes), then starts the other. All three
+  verified on this PC.
+- Desktop shortcuts: **Switch to Stage 3**, **Switch to Stage 2**, **Stop Stage servers**.
+- **Login default is now Stage 3 fullscreen on the projector** (per-user Startup
+  `Stage 3 Server.lnk` → `Start-Stage3.bat`, MATLAB R2026b). The old all-users Startup
+  shortcut `C:\ProgramData\...\Startup\stage.lnk` (Stage 2) was moved to
+  `stagepc\disabled-startup\stage.lnk`; move it back to restore Stage 2 at login.
+- Found while testing: the installed Stage 2 app starts serving fullscreen immediately when
+  launched (it does not wait for a Start click), and both servers poll for the escape keys only
+  every 10 s (netbox accept/receive timeout), so **left Shift + Esc must be held for up to 10 s**
+  with the Stage window focused. Ctrl+Shift+Esc (Task Manager) is the keyboard fallback. Worth
+  suggesting a shorter poll interval to Mike.

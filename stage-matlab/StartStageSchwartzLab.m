@@ -115,7 +115,8 @@ function StartStageSchwartzLab(varargin)
     if ~isempty(r.refreshRate)
         fprintf('             refreshRate= %g Hz (pinned)\n', r.refreshRate);
     end
-    fprintf('[StartStageSchwartzLab] shift + escape in the Stage window stops the server.\n');
+    fprintf(['[StartStageSchwartzLab] To stop: click the Stage window, then HOLD left Shift + Esc\n' ...
+             '             for up to 10 s (keys are polled every 10 s). Or Ctrl+Shift+Esc -> Task Manager.\n']);
 
     server = stage.core.network.StageServer(r.port);
     if isempty(r.refreshRate)
