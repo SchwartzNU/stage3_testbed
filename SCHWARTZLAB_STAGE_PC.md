@@ -25,6 +25,14 @@ Symphony 3 on the Rig A PC (whose `sa_labs.rigs.SchwartzLab_Rig_A_UVProjector` o
 
 ## Steps
 
+0. **Java.** MATLAB R2025b+ ships no JVM, and Stage needs one (stage.core.Canvas and the netbox
+   TCP layer are Java-based; on R2026b the server dies with "no runtime environment for Java
+   applications has been found"). Install Eclipse Temurin JDK 17 (`winget install
+   EclipseAdoptium.Temurin.17.JDK`, needs an admin UAC click) and in MATLAB run
+   `jenv("C:Program Filesclipse Adoptiumjdk-17.<x>-hotspot")` once (per user), then restart
+   MATLAB and confirm with `version -java`. Supported OpenJDK for R2026b: 8, 11, 17, 21, 25
+   (https://www.mathworks.com/support/requirements/openjdk.html). Older MATLAB (<= R2025a)
+   bundles Java and needs nothing.
 1. Find out the MATLAB release(s) installed here (`dir "C:\Program Files\MATLAB"`). Stage 3 needs
    **R2019b or newer** (Mike develops on R2024b). Also note the GPU and which monitor is the
    projector (`stage.core.Monitor` index; the old Stage Server app shows it).
