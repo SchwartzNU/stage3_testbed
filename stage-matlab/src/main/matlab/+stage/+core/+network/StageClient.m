@@ -3,17 +3,26 @@ classdef StageClient < handle
     properties (SetAccess = private)
         isConnected
     end
-    
+
+    properties
+        % Seconds to wait for the server to answer a control request
+        % (getCanvasSize, play acknowledgement, ...). 0 = wait forever, which
+        % is how Stage 2 behaved and froze Symphony whenever the server was
+        % wedged. Applied on connect; change with setResponseTimeout.
+        responseTimeout = 15
+    end
+
     properties (Access = private)
         client
+        activeTimeout = 0   % seconds currently applied to the connection (0 = none)
     end
-    
+
     methods
-        
+
         function obj = StageClient()
             obj.client = netbox.Client();
         end
-        
+
         function connect(obj, host, port)
             if nargin < 2
                 host = 'localhost';
@@ -22,6 +31,15 @@ classdef StageClient < handle
                 port = 5678;
             end
             obj.client.connect(host, port);
+            obj.applyTimeout(obj.responseTimeout);
+        end
+
+        function setResponseTimeout(obj, seconds)
+            % Sets the control-request timeout (seconds, 0 = none).
+            obj.responseTimeout = seconds;
+            if obj.isConnected
+                obj.applyTimeout(seconds);
+            end
         end
         
         function disconnect(obj)
@@ -148,9 +166,17 @@ classdef StageClient < handle
             obj.sendReceive(e);
         end
         
-        function i = getPlayInfo(obj)
+        function i = getPlayInfo(obj, timeoutSeconds)
             % Gets information about the last remotely played (or replayed) presentation.
+            % Blocks until the play finishes. Pass timeoutSeconds (e.g. the
+            % presentation duration plus a margin) to bound the wait; omit it or
+            % pass 0 to wait indefinitely, as before.
+            if nargin < 2
+                timeoutSeconds = 0;
+            end
             e = netbox.NetEvent('getPlayInfo');
+            obj.applyTimeout(timeoutSeconds);
+            restore = onCleanup(@() obj.applyTimeout(obj.responseTimeout));
             i = obj.sendReceive(e);
         end
         
@@ -164,10 +190,30 @@ classdef StageClient < handle
     
     methods (Access = protected)
         
+        function applyTimeout(obj, seconds)
+            % netbox works in milliseconds; 0 disables the timeout.
+            try
+                obj.client.setReceiveTimeout(round(seconds * 1000));
+                obj.activeTimeout = seconds;
+            catch
+                % not connected yet
+            end
+        end
+
         function varargout = sendReceive(obj, event)
             obj.client.sendEvent(event);
-            e = obj.client.receiveEvent();
-            
+            try
+                e = obj.client.receiveEvent();
+            catch x
+                if strcmp(x.identifier, 'Connection:ReceiveTimeout')
+                    error('stage:StageClient:timeout', ...
+                        ['Stage server did not answer ''%s'' within %g s. The server may be ' ...
+                         'wedged or still serving a previous client; restart Stage on the Stage PC.'], ...
+                        event.name, obj.activeTimeout);
+                end
+                rethrow(x);
+            end
+
             switch e.name
                 case 'ok'
                     varargout = e.arguments;

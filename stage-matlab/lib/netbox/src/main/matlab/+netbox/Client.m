@@ -36,7 +36,17 @@ classdef Client < handle
         function tf = get.isConnected(obj)
             tf = ~isempty(obj.connection);
         end
-        
+
+        function setReceiveTimeout(obj, t)
+            % Maximum time in milliseconds to wait for a reply in receiveEvent
+            % (0 = wait forever). Raises 'Connection:ReceiveTimeout' when the
+            % server does not answer in time.
+            if isempty(obj.connection)
+                error('Not connected');
+            end
+            obj.connection.setReceiveTimeout(t);
+        end
+
         function sendEvent(obj, event)
             if isempty(obj.connection)
                 error('Not connected');
