@@ -261,3 +261,17 @@ closure deserializes fine when `symphonyui.core.Protocol` is on the path, and `o
 - `Start-Stage3.bat` now writes the MATLAB console to `stagepc\stage3-server.log` (overwritten on
   each start, git-ignored) so server-side errors can be read after the fact. To check that the
   Symphony classes were picked up, look for `added Symphony 3 core classes:` in that log.
+## Remote restart of the Stage server (2026-10-08)
+
+No keyboard is attached to this PC during experiments, so the rig PC can now restart the server:
+
+- `stagepc\StageWatchdog.ps1` listens on TCP 5680 (rig network); `restart <token>` runs
+  `Start-Stage3.bat` (which stops any Stage server first), `status <token>` reports whether
+  something listens on 5679. Log: `%LOCALAPPDATA%\StageWatchdog\watchdog.log`.
+- **Install once, as administrator:** `stagepc\Install-StageWatchdog.bat`. It registers a hidden
+  logon task, opens the firewall for 5680, writes `stagepc\StageWatchdog.token` (random) and starts
+  the watchdog. Copy the printed token to the rig PC: in MATLAB there,
+  `setpref('SymphonyUI','stageWatchdogToken','<token>')` (one time).
+- **On the rig PC:** `restartStageServer` (in `Documents\MATLAB\Symphony3`, on the Symphony 3 path),
+  `restartStageServer status`, `restartStageServer windowed`. After a restart wait ~20 s, then
+  Initialize Rig in Symphony.

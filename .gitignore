@@ -7,3 +7,4 @@
 
 # Stage PC server console log (written by stagepc/Start-Stage3.bat)
 stagepc/stage3-server.log
+StageWatchdog.token
