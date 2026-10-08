@@ -230,3 +230,25 @@ mean flip 17.2 ms, max 33.1 ms in the non-fullscreen window; expect tighter timi
   "Client connected from <host>" on connect. If the connection is refused, check that the Stage
   window is up (someone may have switched to Stage 2 via the Desktop shortcut) rather than the
   firewall, which already allows R2026b MATLAB inbound on the rig network.
+
+## 2026-10-08 (Rig A session): the server needs the Symphony 3 core classes too
+
+Finding: every stage protocol whose controller closure captured its protocol object (`obj`) failed on
+this server (Annulus, Chirp, ContrastResponse, ... "Timeout (10s) waiting for 512 AI samples" on Rig A,
+because no frames were drawn and the frame-tracker trigger never fired). Reproduced headlessly: the
+closure deserializes fine when `symphonyui.core.Protocol` is on the path, and `obj` becomes a `double`
+("Dot indexing is not supported for variables of type double") when it is not. Two fixes, both applied:
+
+1. `StartStageSchwartzLab.m` now adds the Symphony 3 fork's MATLAB classes when the fork is cloned next
+   to this repo. **On this PC, do once:**
+   ```
+   cd %USERPROFILE%\Documents\MATLAB\Symphony3
+   git clone https://github.com/SchwartzNU/symphony3_matlab_schwartzlab_integration.git symphony3_matlab
+   ```
+   so the layout matches Rig A: `Symphony3\stage3_testbed`, `Symphony3\sa-labs-extension`,
+   `Symphony3\symphony3_matlab`. Then `git pull` in `stage3_testbed` and in `sa-labs-extension`
+   (branch symphony3-port) and restart the Stage 3 server (Start-Stage3.bat). The launcher prints
+   `added Symphony 3 core classes: ...` when it finds the clone.
+2. The lab protocols are being rewritten so controller closures carry only plain values (see the
+   sa-labs-extension commits of 2026-10-08 and `Symphony3\s3_presentationcheck.m` on Rig A, which
+   flags any controller that still captures the protocol object). Keep both: 1 is the safety net.
