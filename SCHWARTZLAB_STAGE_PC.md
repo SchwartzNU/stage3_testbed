@@ -275,3 +275,15 @@ No keyboard is attached to this PC during experiments, so the rig PC can now res
 - **On the rig PC:** `restartStageServer` (in `Documents\MATLAB\Symphony3`, on the Symphony 3 path),
   `restartStageServer status`, `restartStageServer windowed`. After a restart wait ~20 s, then
   Initialize Rig in Symphony.
+
+### How to run the watchdog installer (PowerShell, any window)
+
+```powershell
+Set-Location "$env:USERPROFILE\Documents\MATLAB\Symphony3\stage3_testbed\stagepc"
+Start-Process cmd.exe -ArgumentList '/k Install-StageWatchdog.bat' -Verb RunAs
+```
+
+Accept the UAC prompt; the elevated window stays open and prints the token. (Or in Explorer:
+right-click `stagepc\Install-StageWatchdog.bat` > Run as administrator.) Check afterwards with
+`Get-ScheduledTask StageWatchdog` and `netstat -an | findstr 5680`. On the rig PC, once:
+`setpref('SymphonyUI','stageWatchdogToken','<token>')`, then `restartStageServer status`.
