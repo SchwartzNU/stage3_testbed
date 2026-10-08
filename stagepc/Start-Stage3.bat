@@ -32,6 +32,10 @@ if "%~1"=="" (
     set "LAUNCH_CMD=StartStageSchwartzLab('%~1')"
 )
 
-echo Starting Stage 3 server: %LAUNCH_CMD%  (port 5679)
-start "" "%MATLAB_EXE%" -sd "%STAGE3%" -nodesktop -r "%LAUNCH_CMD%"
+REM MATLAB console output is also written to stagepc\stage3-server.log (overwritten
+REM on every start) so server-side errors survive a crash or a fullscreen window.
+set "LOGFILE=%HERE%stage3-server.log"
+
+echo Starting Stage 3 server: %LAUNCH_CMD%  (port 5679, log: %LOGFILE%)
+start "" "%MATLAB_EXE%" -sd "%STAGE3%" -nodesktop -logfile "%LOGFILE%" -r "%LAUNCH_CMD%"
 endlocal

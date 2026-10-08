@@ -252,3 +252,12 @@ closure deserializes fine when `symphonyui.core.Protocol` is on the path, and `o
 2. The lab protocols are being rewritten so controller closures carry only plain values (see the
    sa-labs-extension commits of 2026-10-08 and `Symphony3\s3_presentationcheck.m` on Rig A, which
    flags any controller that still captures the protocol object). Keep both: 1 is the safety net.
+
+### Done on the Stage PC (2026-10-08)
+
+- Cloned `Symphony3\symphony3_matlab` (SchwartzNU/symphony3_matlab_schwartzlab_integration, master
+  @ 402c72a) next to this repo; pulled `sa-labs-extension` symphony3-port to 955360f; pulled this
+  repo; restarted the Stage 3 server with `Start-Stage3.bat`.
+- `Start-Stage3.bat` now writes the MATLAB console to `stagepc\stage3-server.log` (overwritten on
+  each start, git-ignored) so server-side errors can be read after the fact. To check that the
+  Symphony classes were picked up, look for `added Symphony 3 core classes:` in that log.
