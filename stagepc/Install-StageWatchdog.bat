@@ -1,36 +1,19 @@
 @echo off
-REM Install-StageWatchdog.bat - run once on the Stage PC (as the user that logs in).
+REM Install-StageWatchdog.bat - run once on the Stage PC, double-clicked as the user
+REM that logs in (SchwartzLab). Do NOT run it from another account's administrator
+REM prompt: the watchdog and the Stage servers it starts must run in this user's
+REM session (MATLAB's jenv Java binding is per user).
 REM
-REM Registers StageWatchdog.ps1 as a hidden task that starts at this user's logon,
-REM opens Windows Firewall for TCP 5680 on private/domain networks, writes the shared
-REM token, and starts the watchdog now. Afterwards the rig PC can restart the Stage
+REM It runs Install-StageWatchdog.ps1, which creates the token, adds a per-user
+REM Startup shortcut for the watchdog, starts it now, and asks (UAC) to open TCP 5680
+REM in the firewall for all profiles. Afterwards the rig PC can restart the Stage
 REM server with restartStageServer in MATLAB (see StageWatchdog.ps1 for the protocol).
 REM
-REM Uninstall: schtasks /Delete /TN StageWatchdog /F
+REM Uninstall: see the header of Install-StageWatchdog.ps1.
 
 setlocal
 set "HERE=%~dp0"
-set "SCRIPT=%HERE%StageWatchdog.ps1"
-
-if not exist "%HERE%StageWatchdog.token" (
-    echo stage-%RANDOM%%RANDOM%> "%HERE%StageWatchdog.token"
-)
-echo Token (copy this into restartStageServer.m on the rig PC, or keep the default there if unchanged):
-type "%HERE%StageWatchdog.token"
-
-schtasks /Delete /TN StageWatchdog /F >nul 2>&1
-schtasks /Create /TN StageWatchdog /SC ONLOGON /RL LIMITED /F ^
-    /TR "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"%SCRIPT%\""
-if errorlevel 1 (
-    echo Could not create the logon task. Run this file as administrator.
-    pause
-    exit /b 1
-)
-
-netsh advfirewall firewall delete rule name="Stage watchdog 5680" >nul 2>&1
-netsh advfirewall firewall add rule name="Stage watchdog 5680" dir=in action=allow protocol=TCP localport=5680 profile=private,domain >nul 2>&1
-
-echo Starting the watchdog now...
-start "" powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "%SCRIPT%"
-echo Done. Log: %LOCALAPPDATA%\StageWatchdog\watchdog.log
+powershell -NoProfile -ExecutionPolicy Bypass -File "%HERE%Install-StageWatchdog.ps1"
+echo.
+pause
 endlocal

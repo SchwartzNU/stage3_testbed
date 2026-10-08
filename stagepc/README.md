@@ -41,4 +41,4 @@ Stage 2's install (`Documents\MATLAB\Add-Ons\Apps\StageServer`, `Add-Ons\Toolbox
 - The Stage 3 server needs the `symphony3-port` clone of sa-labs-extension next to this repo
   (`Documents\MATLAB\Symphony3\sa-labs-extension`); `StartStageSchwartzLab.m` adds it to the path.
 
-| `StageWatchdog.ps1` / `Install-StageWatchdog.bat` | Remote restart from the rig PC (TCP 5680, token in `StageWatchdog.token`). Install once as administrator; see SCHWARTZLAB_STAGE_PC.md "Remote restart". |
+| `StageWatchdog.ps1` / `Install-StageWatchdog.bat` (+ `.ps1`) | Remote restart from the rig PC (TCP 5680, token in `StageWatchdog.token`). Install once by double-clicking the .bat as the logged-in user (not from another account's admin prompt); only the firewall step asks for UAC. See SCHWARTZLAB_STAGE_PC.md "Remote restart". |

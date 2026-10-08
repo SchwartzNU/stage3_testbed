@@ -276,14 +276,33 @@ No keyboard is attached to this PC during experiments, so the rig PC can now res
   `restartStageServer status`, `restartStageServer windowed`. After a restart wait ~20 s, then
   Initialize Rig in Symphony.
 
-### How to run the watchdog installer (PowerShell, any window)
+### How to run the watchdog installer (on the Stage PC)
 
-```powershell
-Set-Location "$env:USERPROFILE\Documents\MATLAB\Symphony3\stage3_testbed\stagepc"
-Start-Process cmd.exe -ArgumentList '/k Install-StageWatchdog.bat' -Verb RunAs
-```
+**Do not use "Run as administrator"** for this installer (the earlier instructions said to; see
+the next section for why it goes wrong on this PC). In Explorer, double-click
+`stagepc\Install-StageWatchdog.bat` as the logged-in user (SchwartzLab). It prints the token, adds
+the per-user Startup shortcut, starts the watchdog, and then asks once (UAC) to add the firewall
+rule; if you cannot approve that, it prints the `netsh` line to run from an administrator prompt
+later. The installer refuses to run if it detects it is elevated.
 
-Accept the UAC prompt; the elevated window stays open and prints the token. (Or in Explorer:
-right-click `stagepc\Install-StageWatchdog.bat` > Run as administrator.) Check afterwards with
-`Get-ScheduledTask StageWatchdog` and `netstat -an | findstr 5680`. On the rig PC, once:
+Check afterwards: `netstat -an | findstr 5680` (listener) and
+`Get-ChildItem ([Environment]::GetFolderPath('Startup'))` shows `Stage Watchdog.lnk`. There is
+no `StageWatchdog` scheduled task in this version. On the rig PC, once:
 `setpref('SymphonyUI','stageWatchdogToken','<token>')`, then `restartStageServer status`.
+
+### Watchdog installer reworked for this PC (Stage PC, 2026-10-08)
+
+Two problems with the original `Install-StageWatchdog.bat` on this machine, both fixed in
+`Install-StageWatchdog.ps1` (the .bat now just runs it):
+
+- The firewall rule was private/domain only, but the rig Ethernet here ("Unidentified network",
+  192.168.0.3) is on the **Public** profile, so the rig PC would have been blocked. The rule is now
+  `profile=any`.
+- "Run as administrator" on this PC means elevating as a different account (SchwartzLab is not an
+  administrator). An ONLOGON task created that way is registered for the admin account, and the
+  "start now" step would run the watchdog (and any Stage server it starts) as that account, where
+  MATLAB's per-user `jenv` binding does not exist. The watchdog is now started from this user's
+  Startup folder (`Stage Watchdog.lnk`, like `Stage 3 Server.lnk`), no admin needed; only the
+  `netsh` firewall step triggers UAC, and it prints the command to run manually if that fails.
+
+Install status: **not yet run** (waiting for Greg to double-click the .bat on this PC).
