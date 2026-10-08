@@ -89,6 +89,23 @@ function StartStageSchwartzLab(varargin)
             '  %s\n  Custom lab stimuli (sa_labs.util.*) will fail to deserialize.\n'], labExt);
     end
 
+    % ---- 3b. Symphony 3 core MATLAB classes (symphony3_matlab clone next to this repo).
+    % Controller closures that capture the protocol object only deserialize when
+    % symphonyui.core.Protocol etc. exist on the server path; without them the
+    % protocol becomes a double and the controller fails ("Dot indexing is not
+    % supported for variables of type double"), no frames are drawn, and the
+    % rig's frame-tracker trigger never fires (Rig A, 2026-10-08).
+    symFork = fullfile(fileparts(fileparts(root)), 'symphony3_matlab');
+    symSrc = fullfile(symFork, 'code', 'src', 'matlab');
+    if exist(fullfile(symSrc, '+symphonyui'), 'dir')
+        addpath(symSrc);
+        addpath(genpath(fullfile(symFork, 'code', 'lib')));
+        fprintf('[StartStageSchwartzLab] added Symphony 3 core classes: %s\n', symSrc);
+    else
+        fprintf(2, ['[StartStageSchwartzLab] WARNING: symphony3_matlab clone not found at\n' ...
+            '  %s\n  Any controller closure that captures its protocol object will fail on this server.\n'], symFork);
+    end
+
     % ---- 4. ffmpeg for Movie stimuli.
     [ffStatus, ~] = system('ffmpeg -version');
     if ffStatus ~= 0 && ispc
