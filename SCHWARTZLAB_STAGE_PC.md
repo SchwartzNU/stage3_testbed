@@ -265,6 +265,12 @@ closure deserializes fine when `symphonyui.core.Protocol` is on the path, and `o
 
 No keyboard is attached to this PC during experiments, so the rig PC can now restart the server:
 
+- 2026-10-12: the watchdog also answers `version <token>` with the git state of this PC's `stage3_testbed` and
+  `sa-labs-extension` checkouts (`ok stage3_testbed=master@602d67d78f:0 sa-labs-extension=symphony3-port@1d4eae2047:0`,
+  commit:dirty-count). Rig A compares them with its own at launch (`symphonyui.app.CodeStatus`) and refuses a new
+  experiment on a mismatch. **After pulling this repo here, restart the watchdog task** so the new command is live:
+  `schtasks /End /TN StageWatchdog` then `schtasks /Run /TN StageWatchdog` (or log off and on).
+
 - `stagepc\StageWatchdog.ps1` listens on TCP 5680 (rig network); `restart <token>` runs
   `Start-Stage3.bat` (which stops any Stage server first), `status <token>` reports whether
   something listens on 5679. Log: `%LOCALAPPDATA%\StageWatchdog\watchdog.log`.

@@ -62,6 +62,23 @@ while ($true) {
             $writer.WriteLine('error bad-token')
         } elseif ($cmd -eq 'status') {
             if (Test-StageListening) { $writer.WriteLine('ok listening') } else { $writer.WriteLine('ok not-listening') }
+        } elseif ($cmd -eq 'version') {
+            # git state of this PC's checkouts (Symphony3\stage3_testbed, Symphony3\sa-labs-extension);
+            # Rig A compares them with its own at launch (symphonyui.app.CodeStatus)
+            $symphony3 = Split-Path (Split-Path $here -Parent) -Parent
+            $out = @()
+            foreach ($repo in @('stage3_testbed', 'sa-labs-extension')) {
+                $dir = Join-Path $symphony3 $repo
+                if (Test-Path $dir) {
+                    try {
+                        $branch = (& git -C $dir rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
+                        $hash = (& git -C $dir rev-parse --short=10 HEAD 2>$null | Out-String).Trim()
+                        $dirty = (& git -C $dir status --porcelain --untracked-files=no 2>$null | Measure-Object -Line).Lines
+                        $out += "$repo=$branch@${hash}:$dirty"
+                    } catch { $out += "$repo=error" }
+                }
+            }
+            $writer.WriteLine('ok ' + ($out -join ' '))
         } elseif ($cmd -eq 'restart') {
             $mode = ''
             if ($parts.Count -ge 3) { $mode = $parts[2] }
